@@ -22,7 +22,7 @@ p <- 10 # number of predictors
 
 # Synthetic data generation ----------------------------------------------------
 # 1. Generate random values for the betas (as uniform integers in [-10,10])
-beta_coef <- runif(p+1, min = -10, max = 10) # Include beta_0 for the intercept
+beta_coef <- runif(p+1, min=-10, max=10) # Include beta_0 for the intercept
 
 print('Values of the beta coefficients:')
 for (i in 1:(p+1)){
@@ -35,9 +35,9 @@ for (i in 1:(p+1)){
 # Each element is drawn independently:
 # No correlation between variables, X
 # Follows a Normal distribution (0, 1)
-mu_X <- 0; sigma_X <- 0.5
-X_0 <- matrix(rep(1, n), ncol = 1)
-X_1 <- matrix(rnorm(n*p, mean = mu_X, sd = sigma_X), ncol = p)
+mu_X <- 0; sigma_X <- 1
+X_0 <- matrix(rep(1, n), ncol=1)
+X_1 <- matrix(rnorm(n*p, mean=mu_X, sd=sigma_X), ncol=p)
 X <- cbind(X_0, X_1)
 
 # To introduce correlation between predictors
@@ -47,19 +47,21 @@ X <- cbind(X_0, X_1)
 y_lin <- X %*% beta_coef
 
 # 4. Introducing Random Error (Noise)
-rand_error <- stats::rnorm(n, mean = 0, sd = 0.1)
+rand_error <- stats::rnorm(n, mean=0, sd=0.1)
 y <- y_lin + rand_error
 
 # 5. Final Outputs
-data1 <- data.frame(y = y, X)
+data1 <- data.frame(y=y, X)
 
 
 ## Preparing the dataset --------------------------------------------------------
 
-mcor <- cor(data1)
+data_without_intercept <- subset(data1, select=-c(X1))
+mcor <- cor(data_without_intercept)
 mcor
-abs(mcor)>0.8
-corrplot::corrplot(mcor, method = "ellipse")
+abs(data_without_intercept)>0.8
+#corrplot::corrplot(mcor, method = "number")
+corrplot::corrplot(mcor, method = "circle")
 
 index <- floor(0.8*nrow(data1))
 sample_train <- sample(1:nrow(data1), index)
@@ -67,6 +69,11 @@ sample_test <- (1:nrow(data1))[-sample_train]
 
 train <- data1[sample_train,]
 test <- data1[sample_test,]
+
+# Get rid off the intercept, no need anymore
+
+train <- subset(train, select=-c(X1))
+test <- subset(test, select=-c(X1))
 
 y_train <- train$y
 y_test <- test$y
@@ -110,10 +117,10 @@ predict(ridge_mod1, type = "coefficients")
 
 newx=model.matrix(y~.,data=test)[,-1]
 
-predRidge<- predict(ridge_mod1, newx = newx)#s=lambda.1SE
-predLasso<- predict(kcvLasso, newx = newx)
-predEnet<-predict(elasticnet,newx=newx)
-predols<- predict(modOLSBIC, newdata =test)
+predRidge <- predict(ridge_mod1, newx = newx)#s=lambda.1SE
+predLasso <- predict(kcvLasso, newx = newx)
+predEnet <-predict(elasticnet,newx=newx)
+predols <- predict(modOLSBIC, newdata =test)
 #predBIC<- predict(ols, newdata = test)
 
 
