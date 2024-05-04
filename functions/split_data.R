@@ -1,7 +1,7 @@
 ################################################################################
 ## Project: Advanced Regression and Prediction
 ##
-## Function for splitting the data in train (80%) and test (20%) subsets
+## Function for splitting the data in train (80%) and test (20%) subsets.
 ##
 ################################################################################
 
