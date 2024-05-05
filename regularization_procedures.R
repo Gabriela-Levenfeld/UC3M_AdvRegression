@@ -10,6 +10,7 @@
 library(glmnet)
 library(caret)
 source("functions/split_data.R")
+source("functions/error_metrics.R")
 
 
 set.seed(1234) # for reproducibility
@@ -57,8 +58,6 @@ abline(v = log(c(kcvRidge2_mod1$lambda.min, kcvRidge2_mod1$lambda.1se)))
 # Predictions using the lambda.1se
 pred_Ridge1_coef <- predict(finalRidgeCV_mod1, type="coefficients", s=kcvRidge2_mod1$lambda.1se)
 pred_Ridge1_y <- predict(finalRidgeCV_mod1, newx=x_test, s=kcvRidge2_mod1$lambda.1se)
-mse_test <- mean((y_test - pred_Ridge1_y)^2)
-print(paste("Ridge - Test MSE:", mse_test))
 
 # REVIEW: Should we compute the error on the beta coeff?
 
@@ -84,30 +83,32 @@ finalLassoCV_mod1 <- kcvLasso2_mod1$glmnet.fit
 # Predictions using the lambda.1se
 pred_Lasso1_coef <- predict(finalLassoCV_mod1, type="coefficients", s=kcvLasso2_mod1$lambda.1se)
 pred_Lasso1_y <- predict(finalLassoCV_mod1, newx=x_test, s=kcvLasso2_mod1$lambda.1se)
-mse_test_lasso1 <- mean((y_test - pred_Lasso1_y)^2)
-print(paste("Lasso - Test MSE:", mse_test_lasso1))
 
 predict(kcvLasso2_mod1, type = "coefficients",
         s = c(kcvLasso2_mod1$lambda.min, kcvLasso2_mod1$lambda.1se))
 # REVIEW. There is no difference between values... weird!
 
 
-# Elastic Net regression -> alpha=1
+# Elastic Net regression
 elasticNet_mod1 <- caret::train(x_train, y_train, method="glmnet",
                                 preProc=c("zv", "center", "scale"),
                                 trControl=trainControl(method="cv", number=10),
                                 tuneLength=10)
-ggplot(elasticnet_mod1, highlight = TRUE)
+ggplot(elasticNet_mod1, highlight = TRUE)
 
 elasticNet_mod1$bestTune$lambda # 0.02423024
 elasticNet_mod1$bestTune$alpha # 0.6
 
-# Predictions
-final_model <- elasticNet_mod1$finalModel
-pred_elasticNet1_coef <- predict(final_model, type="coefficients",
-                                 s=elasticNet_mod1$bestTune$lambda,
-                                 exact=TRUE, x=x_train, y=y_train)
+kcvEnet_mod1 <- cv.glmnet(x=x_train, y=y_train, alpha=0.6, nfolds=10)
+# REVIEW: should we fixed the lambda param also?
+finalEnetCV_mod1 <- kcvEnet_mod1$glmnet.fit
 
-pred_elasticNet_y <- predict(elasticNet_mod1, newx=x_test)
-mse_test_elasticnet1 <- mean((y_test - pred_elasticNet_y)^2)
-print(paste("ElasticNet - Test MSE:", mse_test_elasticnet1))
+# Predictions
+pred_elasticNet1_coef <- predict(finalEnetCV_mod1, s=kcvEnet_mod1$lambda.1se, type="coefficients")
+pred_elasticNet_y <- predict(finalEnetCV_mod1, newx=x_test, s=kcvEnet_mod1$lambda.1se)
+
+
+# Summary with the errors of three models
+round(error_metrics(pred_Ridge1_y, y_test), 2)
+round(error_metrics(pred_Lasso1_y, y_test), 2)
+round(error_metrics(pred_elasticNet_y, y_test), 2)
