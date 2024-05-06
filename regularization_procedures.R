@@ -7,6 +7,7 @@
 ################################################################################
 
 # Load libraries and functions -------------------------------------------------
+library(MASS)
 library(glmnet)
 library(caret)
 library(ggplot2)
@@ -110,9 +111,9 @@ pred_elasticNet1_y <- predict(finalEnetCV_mod1, newx=x_test, s=kcvEnet_mod1$lamb
 
 ## Errors on test data ---------------------------------------------------------
 # Summary with the errors of three models
-round(error_metrics(pred_Ridge1_y, y_test), 2)
-round(error_metrics(pred_Lasso1_y, y_test), 2)
-round(error_metrics(pred_elasticNet1_y, y_test), 2)
+round(error_metrics(pred_Ridge1_y, y_test), 3)
+round(error_metrics(pred_Lasso1_y, y_test), 3)
+round(error_metrics(pred_elasticNet1_y, y_test), 3)
 
 
 
@@ -207,9 +208,9 @@ pred_elasticNet2_y <- predict(finalEnetCV_mod2, newx=x_test2, s=kcvEnet_mod2$lam
 
 ## Errors on test data ---------------------------------------------------------
 # Summary with the errors of three models
-round(error_metrics(pred_Ridge2_y, y_test2), 2)
-round(error_metrics(pred_Lasso2_y, y_test2), 2)
-round(error_metrics(pred_elasticNet2_y, y_test2), 2)
+round(error_metrics(pred_Ridge2_y, y_test2), 3)
+round(error_metrics(pred_Lasso2_y, y_test2), 3)
+round(error_metrics(pred_elasticNet2_y, y_test2), 3)
 
 
 
@@ -306,9 +307,9 @@ pred_elasticNet3_y <- predict(finalEnetCV_mod3, newx=x_test3, s=kcvEnet_mod3$lam
 
 ## Errors on test data ---------------------------------------------------------
 # Summary with the errors of three models
-round(error_metrics(pred_Ridge3_y, y_test3), 2)
-round(error_metrics(pred_Lasso3_y, y_test3), 2)
-round(error_metrics(pred_elasticNet3_y, y_test3), 2)
+round(error_metrics(pred_Ridge3_y, y_test3), 3)
+round(error_metrics(pred_Lasso3_y, y_test3), 3)
+round(error_metrics(pred_elasticNet3_y, y_test3), 3)
 
 
 
@@ -405,9 +406,9 @@ pred_elasticNet4_y <- predict(finalEnetCV_mod4, newx=x_test4, s=kcvEnet_mod4$lam
 
 ## Errors on test data ---------------------------------------------------------
 # Summary with the errors of three models
-round(error_metrics(pred_Ridge4_y, y_test4), 2)
-round(error_metrics(pred_Lasso4_y, y_test4), 2)
-round(error_metrics(pred_elasticNet4_y, y_test4), 2)
+round(error_metrics(pred_Ridge4_y, y_test4), 3)
+round(error_metrics(pred_Lasso4_y, y_test4), 3)
+round(error_metrics(pred_elasticNet4_y, y_test4), 3)
 
 
 
@@ -504,6 +505,6 @@ pred_elasticNet5_y <- predict(finalEnetCV_mod5, newx=x_test5, s=kcvEnet_mod5$lam
 
 ## Errors on test data ---------------------------------------------------------
 # Summary with the errors of three models
-round(error_metrics(pred_Ridge5_y, y_test5), 2)
-round(error_metrics(pred_Lasso5_y, y_test5), 2)
-round(error_metrics(pred_elasticNet5_y, y_test5), 2)
+round(error_metrics(pred_Ridge5_y, y_test5), 3)
+round(error_metrics(pred_Lasso5_y, y_test5), 3)
+round(error_metrics(pred_elasticNet5_y, y_test5), 3)
