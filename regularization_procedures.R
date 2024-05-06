@@ -20,13 +20,12 @@ set.seed(1234) # for reproducibility
 simulations1 <- read.csv("syntheticData/scenario1.csv")
 aux1 <- split_data(simulations1)
 
-## Regularization techniques ----------------------------------------------------
-# One of this models might be used as a benchmark
+## Benchmark -------------------------------------------------------------------
 ols1 <- lm(y~., data = aux1$train) # OLS
 olsBIC_mod1 <- stepAIC(ols1, k=log(nrow(aux1$x_train)), trace=0) # OLS combined with the BIC
 
 
-# Ridge regression -> alpha=0
+## Ridge (alpha=0) -------------------------------------------------------------
 ridge_mod1 <- glmnet(aux1$x_train, aux1$y_train, alpha=0)
 
 # 10-fold cross-validation
@@ -54,7 +53,7 @@ abline(v = log(c(kcvRidge2_mod1$lambda.min, kcvRidge2_mod1$lambda.1se)))
 ridge_res_mod1 <- summary_mod_performance(aux1$x_test, aux1$y_test, kcvRidge2_mod1)
 
 
-# Lasso regression -> alpha=1
+## Lasso (alpha=1) -------------------------------------------------------------
 lasso_mod1 <- glmnet(x=aux1$x_train, y=aux1$y_train, alpha=1)
 kcvLasso_mod1 <- cv.glmnet(x=aux1$x_train, y=aux1$y_train, alpha=1, nfolds=10)
 kcvLasso_mod1$lambda.min
@@ -80,7 +79,7 @@ predict(kcvLasso2_mod1, type = "coefficients",
 # REVIEW. There is no difference between values... weird!
 
 
-# Elastic Net regression
+## Elastic Net ------------------------------------------------------------------
 elasticNet_mod1 <- caret::train(aux1$x_train, aux1$y_train, method="glmnet",
                                 preProc=c("zv", "center", "scale"),
                                 trControl=trainControl(method="cv", number=10),
@@ -103,13 +102,12 @@ elasticNet_res_mod1 <- summary_mod_performance(aux1$x_test, aux1$y_test, kcvEnet
 simulations2 <- read.csv("syntheticData/scenario2.csv")
 aux2 <- split_data(simulations2)
 
-## Regularization techniques ----------------------------------------------------
-# One of this models might be used as a benchmark
+## Benchmark -------------------------------------------------------------------
 ols2 <- lm(y~., data = aux2$train) # OLS
 olsBIC_mod2 <- stepAIC(ols2, k=log(nrow(aux2$x_train)), trace=0) # OLS combined with the BIC
 
 
-# Ridge regression -> alpha=0
+## Ridge (alpha=0) -------------------------------------------------------------
 ridge_mod2 <- glmnet(aux2$x_train, aux2$y_train, alpha=0)
 
 # 10-fold cross-validation
@@ -135,7 +133,7 @@ abline(v = log(c(kcvRidge2_mod2$lambda.min, kcvRidge2_mod2$lambda.1se)))
 ridge_res_mod2 <- summary_mod_performance(aux2$x_test, aux2$y_test, kcvRidge2_mod2)
 
 
-# Lasso regression -> alpha=1
+## Lasso (alpha=1) -------------------------------------------------------------
 lasso_mod2 <- glmnet(x=aux2$x_train, y=aux2$y_train, alpha=1)
 kcvLasso_mod2 <- cv.glmnet(x=aux2$x_train, y=aux2$y_train, alpha=1, nfolds=10)
 kcvLasso_mod2$lambda.min
@@ -160,7 +158,7 @@ predict(kcvLasso2_mod2, type = "coefficients",
 # It deactivate the X10 variable -> NICE!!
 
 
-# Elastic Net regression
+## Elastic Net ------------------------------------------------------------------
 elasticNet_mod2 <- caret::train(aux2$x_train, aux2$y_train, method="glmnet",
                                 preProc=c("zv", "center", "scale"),
                                 trControl=trainControl(method="cv", number=10),
@@ -183,13 +181,12 @@ elasticNet_res_mod2 <- summary_mod_performance(aux2$x_test, aux2$y_test, kcvEnet
 simulations3 <- read.csv("syntheticData/scenario3.csv")
 aux3 <- split_data(simulations3)
 
-## Regularization techniques ----------------------------------------------------
-# One of this models might be used as a benchmark
+## Benchmark -------------------------------------------------------------------
 ols3 <- lm(y~., data = aux3$train) # OLS
 olsBIC_mod3 <- stepAIC(ols3, k=log(nrow(aux3$x_train)), trace=0) # OLS combined with the BIC
 
 
-# Ridge regression -> alpha=0
+## Ridge (alpha=0) -------------------------------------------------------------
 ridge_mod3 <- glmnet(aux3$x_train, aux3$y_train, alpha=0)
 
 # 10-fold cross-validation
@@ -215,7 +212,7 @@ abline(v = log(c(kcvRidge2_mod3$lambda.min, kcvRidge2_mod3$lambda.1se)))
 ridge_res_mod3 <- summary_mod_performance(aux3$x_test, aux3$y_test, kcvRidge2_mod3)
 
 
-# Lasso regression -> alpha=1
+## Lasso (alpha=1) -------------------------------------------------------------
 lasso_mod3 <- glmnet(x=aux3$x_train, y=aux3$y_train, alpha=1)
 kcvLasso_mod3 <- cv.glmnet(x=aux3$x_train, y=aux3$y_train, alpha=1, nfolds=10)
 kcvLasso_mod3$lambda.min
@@ -240,7 +237,7 @@ predict(kcvLasso2_mod3, type = "coefficients",
 # REVIEW. There is no difference between values... weird!
 
 
-# Elastic Net regression
+## Elastic Net ------------------------------------------------------------------
 elasticNet_mod3 <- caret::train(aux3$x_train, aux3$y_train, method="glmnet",
                                 preProc=c("zv", "center", "scale"),
                                 trControl=trainControl(method="cv", number=10),
@@ -263,13 +260,12 @@ elasticNet_res_mod3 <- summary_mod_performance(aux3$x_test, aux3$y_test, kcvEnet
 simulations4 <- read.csv("syntheticData/scenario4.csv")
 aux4 <- split_data(simulations4)
 
-## Regularization techniques ----------------------------------------------------
-# One of this models might be used as a benchmark
+## Benchmark -------------------------------------------------------------------
 ols4 <- lm(y~., data = aux4$train) # OLS
 olsBIC_mod4 <- stepAIC(ols4, k=log(nrow(aux4$x_train)), trace=0) # OLS combined with the BIC
 
 
-# Ridge regression -> alpha=0
+## Ridge (alpha=0) -------------------------------------------------------------
 ridge_mod4 <- glmnet(aux4$x_train, aux4$y_train, alpha=0)
 
 # 10-fold cross-validation
@@ -295,7 +291,7 @@ abline(v = log(c(kcvRidge2_mod4$lambda.min, kcvRidge2_mod4$lambda.1se)))
 ridge_res_mod4 <- summary_mod_performance(aux4$x_test,aux4$y_test, kcvRidge2_mod4)
 
 
-# Lasso regression -> alpha=1
+## Lasso (alpha=1) -------------------------------------------------------------
 lasso_mod4 <- glmnet(x=aux4$x_train, y=aux4$y_train, alpha=1)
 kcvLasso_mod4 <- cv.glmnet(x=aux4$x_train, y=aux4$y_train, alpha=1, nfolds=10)
 kcvLasso_mod4$lambda.min
@@ -320,7 +316,7 @@ predict(kcvLasso2_mod4, type = "coefficients",
 # There is difference!!
 
 
-# Elastic Net regression
+## Elastic Net ------------------------------------------------------------------
 elasticNet_mod4 <- caret::train(aux4$x_train, aux4$y_train, method="glmnet",
                                 preProc=c("zv", "center", "scale"),
                                 trControl=trainControl(method="cv", number=10),
@@ -343,13 +339,12 @@ elasticNet_res_mod4 <- summary_mod_performance(aux4$x_test, aux4$y_test, kcvEnet
 simulations5 <- read.csv("syntheticData/scenario5.csv")
 aux5 <- split_data(simulations5)
 
-## Regularization techniques ----------------------------------------------------
-# One of this models might be used as a benchmark
+## Benchmark -------------------------------------------------------------------
 ols5 <- lm(y~., data=aux5$train) # OLS
 olsBIC_mod5 <- stepAIC(ols5, k=log(nrow(aux5$x_train)), trace=0) # OLS combined with the BIC
 
 
-# Ridge regression -> alpha=0
+## Ridge (alpha=0) -------------------------------------------------------------
 ridge_mod5 <- glmnet(aux5$x_train, aux5$y_train, alpha=0)
 
 # 10-fold cross-validation
@@ -375,7 +370,7 @@ abline(v = log(c(kcvRidge2_mod5$lambda.min, kcvRidge2_mod5$lambda.1se)))
 ridge_res_mod5 <- summary_mod_performance(aux5$x_test, aux5$y_test, kcvRidge2_mod5)
 
 
-# Lasso regression -> alpha=1
+## Lasso (alpha=1) -------------------------------------------------------------
 lasso_mod5 <- glmnet(x=aux5$x_train, y=aux5$y_train, alpha=1)
 kcvLasso_mod5 <- cv.glmnet(x=aux5$x_train, y=aux5$y_train, alpha=1, nfolds=10)
 kcvLasso_mod5$lambda.min
@@ -400,7 +395,7 @@ predict(kcvLasso2_mod5, type = "coefficients",
 # There is difference!!
 
 
-# Elastic Net regression
+## Elastic Net ------------------------------------------------------------------
 elasticNet_mod5 <- caret::train(aux5$x_train, aux5$y_train, method="glmnet",
                                 preProc=c("zv", "center", "scale"),
                                 trControl=trainControl(method="cv", number=10),
@@ -416,3 +411,23 @@ finalEnetCV_mod5 <- kcvEnet_mod5$glmnet.fit
 
 # Predictions using the lambda.1se
 elasticNet_res_mod5 <- summary_mod_performance(aux5$x_test, aux5$y_test, kcvEnet_mod5)
+
+
+
+# Results ----------------------------------------------------------------------
+
+mse_data <- data.frame(
+  Scenario = rep(1:5, each=3),
+  MSE = c(ridge_res_mod1$errors["MSEP"], lasso_res_mod1$errors["MSEP"], elasticNet_res_mod1$errors["MSEP"],
+          ridge_res_mod2$errors["MSEP"], lasso_res_mod2$errors["MSEP"], elasticNet_res_mod2$errors["MSEP"],
+          ridge_res_mod3$errors["MSEP"], lasso_res_mod3$errors["MSEP"], elasticNet_res_mod3$errors["MSEP"],
+          ridge_res_mod4$errors["MSEP"], lasso_res_mod4$errors["MSEP"], elasticNet_res_mod4$errors["MSEP"],
+          ridge_res_mod5$errors["MSEP"], lasso_res_mod5$errors["MSEP"], elasticNet_res_mod5$errors["MSEP"]),
+  Method = rep(c("Ridge", "Lasso", "ElasticNet"), 15)
+)
+
+ggplot(mse_data, aes(x=factor(Scenario), y=MSE, fill=Method)) +
+  geom_bar(stat="identity", position=position_dodge()) +
+  labs(x="Scenario", y="Mean Squared Error") +
+  scale_fill_brewer(palette = "Dark2") +
+  theme_minimal()
