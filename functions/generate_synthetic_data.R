@@ -1,7 +1,7 @@
 ################################################################################
 ## Project: Advanced Regression and Prediction
 ##
-## Some functions to generate the synthetic data with diffent specifications.
+## Some functions to generate the synthetic data with different specifications.
 ##
 ################################################################################
 
