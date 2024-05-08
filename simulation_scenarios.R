@@ -8,13 +8,11 @@
 ################################################################################
 
 # Load required libraries and files --------------------------------------------
-library(factoextra) # For PCA and its visualization
-library(ggplot2) # For saving plots
 source("functions/generate_synthetic_data.R")
 
 # Set up all common parameters used --------------------------------------------
 set.seed(1234) # for reproducibility
-n <- 240 # nums of observations, must be divisible by 3! (for scenario 5)
+n <- 240 # number of observations
 p <- 10 # nums of predictors
 
 # Generate random values for the betas (as uniform integers in [-10,10])
@@ -148,8 +146,6 @@ group_means <- matrix(c(rep(-1.5,p), rep(1,p), rep(3,p)), ncol=p, byrow=TRUE)
 data5 <- generate_data_byGroups(n, p, beta_coef, 
                                 num_groups, group_means,
                                 noise_params1)
-
-pca_data <- data5
 data5 <- subset(data5, select=-c(group))
 
 ## Check data ------------------------------------------------------------------
@@ -157,16 +153,6 @@ mcor5 <- cor(data5)
 mcor5
 abs(mcor5)>0.8
 corrplot::corrplot(mcor5, method = "number")
-
-# Display the group creation
-# PCA: excluding group (variable 1) and y (variable 2)
-pca_2_vars <- prcomp(pca_data[, -c(1,2)], scale.=TRUE)
-# Biplot PCA
-pca_plot <- fviz_pca_ind(pca_2_vars,
-                         col.ind = pca_data$group, # Color by group
-                         palette = c("#4682B4", "#32CD32", "#FF6347"),
-                         legend.title = "Group")
-
 
 
 # We can also used the circle representation, more visually.
@@ -189,5 +175,95 @@ beta_data <- data.frame(
 )
 write.csv(beta_data, "syntheticData/beta_coefficients.csv", row.names=FALSE)
 
-# Save the grouped plot
-ggsave("syntheticData/PCA_plot.png", plot=pca_plot, width=10, height=8, dpi=300)
+
+
+
+
+
+
+
+# Function not working
+generate_data_group_correlation <- function(n, p, beta_coef, correlation_groups, noise_params) {
+  # 1. Feature Matrix
+  Sigma <- diag(p) # Identity matrix to start with
+  
+  # Generate correlated feature matrix for specified groups
+  for (group in correlation_groups) {
+    group_size <- length(group)
+    group_Sigma <- matrix(1, nrow=group_size, ncol=group_size) # All ones for correlation within group
+    diag(group_Sigma) <- 1 # Set the diagonal to 1 (correlation with itself)
+    Sigma[group, group] <- group_Sigma
+  }
+  
+  # Generate uncorrelated feature matrix for remaining variables
+  uncorrelated_vars <- setdiff(1:p, unlist(correlation_groups))
+  Sigma[uncorrelated_vars, uncorrelated_vars] <- 0
+  
+  # Generate correlated feature matrix
+  X_correlated <- mvrnorm(n, mu=rep(0, p), Sigma=Sigma)
+  X_0 <- matrix(rep(1, n), ncol=1) # Add intercept
+  X <- cbind(X_0, X_correlated)
+  
+  # 2. Creating Linear Relationship
+  y_lin <- X %*% beta_coef
+  
+  # 3. Introducing Random Error (Noise) -> Follows a Normal distribution
+  normal_error <- rnorm(n, mean=noise_params$mean, sd=noise_params$sd)
+  y <- y_lin + normal_error
+  
+  # 4. Final Outputs
+  data <- data.frame(y=y, X)
+  data <- subset(data, select=-c(X1)) # Get rid off the intercept, no need anymore
+  
+  return(data)
+}
+
+
+
+
+# Example usage:
+beta_coef <- c(2, 3, 1, rep(0, p)) # Coefficients for linear relationship (e.g., 2*y1 + 3*y2 + y3)
+correlation_groups <- list(c(1, 2, 3), c(6, 7)) # Define correlation groups
+noise_params <- list(mean=0, sd=1) # Noise parameters
+
+data <- generate_data_group_correlation(n, p, beta_coef, correlation_groups, noise_params)
+mcor <- cor(data)
+corrplot::corrplot(mcor, method = "number")
+
+
+generate_data_blocks <- function(n, p, block_size = 3) {
+  X <- matrix(rnorm(n * p), ncol = p)
+  
+  noise_vector_first = rnorm(n)  # Common noise vector for the first block
+  for (j in 1:block_size) {
+    X[, j] <- X[, j] + noise_vector_first
+  }
+  
+  # Check if a second block is feasible before proceeding
+  if (2 * block_size <= p) {
+    noise_vector_second = rnorm(n)  # Common noise vector for the second block
+    for (j in 1:block_size) {
+      X[, block_size + j] <- X[, block_size + j] + noise_vector_second
+    }
+  }
+  
+  beta <- rnorm(p)
+  y <- X %*% beta + rnorm(n)
+  
+  data <- data.frame(y=y, X)
+  
+  #return(list(X=X,y=y))
+  return(data)
+}
+
+data <- generate_data_blocks(n, p)
+mcor <- cor(data)
+corrplot::corrplot(mcor, method = "number")
+
+
+
+# To do list:
+# Corregir generation of correlated data
+# Dataset 3 y 4 hay que volver a generarlos porque usan la funcion de correlated data
+# Eliminar escenario 5, no tiene sentido (no es lo que buscamos)
+# Actualizar funciones y ficheros .csv
