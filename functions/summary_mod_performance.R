@@ -21,9 +21,9 @@ summary_mod_performance <- function(x_test, y_test, model, alpha_value) {
   pred_y <- predict(final_mod, newx=x_test, s=best_lambda_1se, alpha=alpha_value)
   errors <- round(error_metrics(pred_y, y_test), 3) # Select just the 3 first decimals
   
-  # Other way of obtaining the coefficients values, same results as before
-  # coefficients <- coef(final_mod, s=best_lambda_1se)
-  
+  # For set as cero the non-selected variable in order to store them
+  pred_coef <- as.vector(pred_coef)
+
   output <- list(coef_values=pred_coef, pred_y=pred_y, errors=errors)
   
   return(output)
