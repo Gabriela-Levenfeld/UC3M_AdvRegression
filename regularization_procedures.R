@@ -8,6 +8,8 @@
 
 # Load libraries and functions -------------------------------------------------
 library(dplyr)
+library(ggplot2)
+library(pander)
 
 source("functions/split_data.R")
 source("functions/apply_penalty_model.R")
@@ -24,7 +26,7 @@ for (i in 1:n_scenarios) {
   cat("Computing ", i, "scenario.") # For user feedback
   
   # Load data for current scenario
-  simulations <- read.csv(paste("syntheticData/scenario", i, "_miki.csv", sep=""))
+  simulations <- read.csv(paste("syntheticData/scenario", i, ".csv", sep=""))
   aux <- split_data(simulations)
   
   # Names for the columns for the csv file
@@ -35,6 +37,7 @@ for (i in 1:n_scenarios) {
 
   # Iterate the simulation
   for (iter in 1:n_iter) {
+    cat(iter, " ") # For user feedback
     # Apply regularization techniques
     #   - Ridge model (alpha=0)
     #   - Lasso model (alpha=1)
@@ -53,19 +56,47 @@ for (i in 1:n_scenarios) {
     elasticNet_df[nrow(elasticNet_df)+1, ] <- c(iter, elasticNet_res$best_lambda, elasticNet_res$best_alpha, unlist(elasticNet_res$res$errors), enet_coefs)
   }
   
+  # Combine in 1 df
+  combined_data <- rbind(
+    ridge_df %>% mutate(Method = "Ridge"),
+    lasso_df %>% mutate(Method = "Lasso"),
+    elasticNet_df %>% mutate(Method = "ElasticNet")
+  )
+  
   # Save df as csv for later analysis
-  write.csv(ridge_df, file=paste("results/scenario", i, "_Ridge.csv", sep=""), row.names=FALSE)
-  write.csv(lasso_df, file=paste("results/scenario", i, "_Lasso.csv", sep=""), row.names=FALSE)
-  write.csv(elasticNet_df, file=paste("results/scenario", i, "_ElasticNet.csv", sep=""), row.names=FALSE)
+  write.csv(combined_data, file=paste("results/scenario", i, ".csv", sep=""), row.names=FALSE)
 }
 
 
+# Analysed results -------------------------------------------------------------
 
+# Load Scenario
+data_scenario <- read.csv("results/scenario2.csv", sep=",")
+
+## Study MSE measure ---------------------------------------------------------
+
+# Create boxplot for MSEP
+ggplot(data_scenario, aes(x=Method, y=MSEP, fill=Method)) +
+  geom_boxplot() +
+  labs(title="Boxplot of MSEP", x="Regularization Method", y="Mean Squared Error of Prediction") +
+  scale_fill_brewer(palette = "Dark2") +
+  theme_minimal()
+
+# Statistics results
+summary_stats <- data_scenario %>%
+  group_by(Method) %>%
+  summarise(
+    Average_Error = mean(MSEP),
+    Max_Error = max(MSEP),
+    Min_Error = min(MSEP),
+    Std_Deviation = sd(MSEP)
+  )
+pander(summary_stats)
 
 
 # Con los cvs sacar las métricas para el report:
 # Error medio y media de las betas
-# Plots (?)
+
 
 
 ## Benchmark -------------------------------------------------------------------
