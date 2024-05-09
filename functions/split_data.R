@@ -6,7 +6,7 @@
 ##
 ################################################################################
 
-set.seed(1234) # for reproducibility
+#set.seed(1234) # for reproducibility
 
 split_data <- function(data) {
   train_percentage <- 0.8 # 80% for training
