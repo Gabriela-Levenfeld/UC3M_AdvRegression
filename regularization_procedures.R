@@ -26,11 +26,13 @@ for (i in 1:n_scenarios) {
   cat("Computing ", i, "scenario.") # For user feedback
   
   # Load data for current scenario
-  simulations <- read.csv(paste("syntheticData/scenario", i, ".csv", sep=""))
+  simulations <- read.csv(paste("syntheticData/dataset", i, ".csv", sep=""))
   aux <- split_data(simulations)
   
-  # Names for the columns for the csv file
+  # The following code line must be deactivated just for scenario 6!
+  # columns <- c("iteration", "best_lambda", "best_alpha", "MEP", "MSEP", "MAEP", "R2", paste0("X", 0:40))
   columns <- c("iteration", "best_lambda", "best_alpha", "MEP", "MSEP", "MAEP", "R2", "X0", paste0("X", 2:11))
+  
   ridge_df <- setNames(data.frame(matrix(ncol=length(columns), nrow=0)), columns)
   lasso_df <- ridge_df
   elasticNet_df <- ridge_df
@@ -70,28 +72,42 @@ for (i in 1:n_scenarios) {
 
 # Analysed results -------------------------------------------------------------
 
-# Load Scenario
-data_scenario <- read.csv("results/scenario2.csv", sep=",")
-
 ## Study MSE measure ---------------------------------------------------------
+all_summary_stats <- list()
 
-# Create boxplot for MSEP
-ggplot(data_scenario, aes(x=Method, y=MSEP, fill=Method)) +
-  geom_boxplot() +
-  labs(title="Boxplot of MSEP", x="Regularization Method", y="Mean Squared Error of Prediction") +
-  scale_fill_brewer(palette = "Dark2") +
-  theme_minimal()
+for (i in 1:n_scenarios) {
+  cat("Analysis of scenario ", i, "\n")
+  
+  # Load Scenario
+  data_scenario <- read.csv(paste0("results/scenario", i, ".csv"), sep=",")
+  
+  # Create boxplot for MSEP
+  p <- ggplot(data_scenario, aes(x=Method, y=MSEP, fill=Method)) +
+    geom_boxplot() +
+    labs(title=paste("Boxplot of MSEP - Scenario", i),
+         x="Regularization Method", y="Mean Squared Error of Prediction") +
+    scale_fill_brewer(palette="Dark2") +
+    theme_minimal()
+  
+  p
+  ggsave(paste0("results/boxplotsMSE/MSEP_boxplot_scenario", i, ".png"), plot=p) # Save the plot
+  
+  # Print statistics for Latex
+  summary_stats <- data_scenario %>%
+    group_by(Method) %>%
+    summarise(
+      Average_Error=mean(MSEP),
+      Max_Error=max(MSEP),
+      Min_Error=min(MSEP),
+      Std_Deviation=sd(MSEP)
+    )
+  
+  # Store them
+  all_summary_stats[[i]] <- summary_stats
+  pander(summary_stats)
+}
 
-# Statistics results
-summary_stats <- data_scenario %>%
-  group_by(Method) %>%
-  summarise(
-    Average_Error = mean(MSEP),
-    Max_Error = max(MSEP),
-    Min_Error = min(MSEP),
-    Std_Deviation = sd(MSEP)
-  )
-pander(summary_stats)
+save(all_summary_stats, file="all_summary_stats.RData")
 
 
 # Con los cvs sacar las métricas para el report:

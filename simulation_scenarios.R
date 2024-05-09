@@ -190,12 +190,12 @@ corrplot::corrplot(mcor6, method = "number")
 
 # Save stuff -------------------------------------------------------------------
 # 1 scenario - 1 file
-write.csv(data1, "syntheticData/scenario1_miki.csv", row.names=FALSE)
-write.csv(data2, "syntheticData/scenario2_miki.csv", row.names=FALSE)
-write.csv(data3, "syntheticData/scenario3_miki.csv", row.names=FALSE)
-write.csv(data4, "syntheticData/scenario4_miki.csv", row.names=FALSE)
-write.csv(data5, "syntheticData/scenario5_miki.csv", row.names=FALSE)
-write.csv(data6, "syntheticData/scenario6_miki.csv", row.names=FALSE)
+write.csv(data1, "syntheticData/dataset1.csv", row.names=FALSE)
+write.csv(data2, "syntheticData/dataset2.csv", row.names=FALSE)
+write.csv(data3, "syntheticData/dataset3.csv", row.names=FALSE)
+write.csv(data4, "syntheticData/dataset4.csv", row.names=FALSE)
+write.csv(data5, "syntheticData/dataset5.csv", row.names=FALSE)
+write.csv(data6, "syntheticData/dataset6.csv", row.names=FALSE)
 
 # Save both beta coefficients used
 beta_data <- data.frame(
