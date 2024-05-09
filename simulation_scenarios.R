@@ -143,7 +143,7 @@ rho <- 0.8 # Positive correlation coefficient
 correlation_groups <- list(c(1, 2, 3), c(6, 7)) # Define correlation groups
 
 set.seed(12345)
-data5 <- generate_data_blocks(n, p)
+data5 <- generate_correlated_data_groups(n, p)
 # TODO: Create negative correlation on the data
 
 ## Check data ------------------------------------------------------------------
@@ -190,12 +190,12 @@ corrplot::corrplot(mcor6, method = "number")
 
 # Save stuff -------------------------------------------------------------------
 # 1 scenario - 1 file
-write.csv(data1, "syntheticData/dataset1.csv", row.names=FALSE)
-write.csv(data2, "syntheticData/dataset2.csv", row.names=FALSE)
-write.csv(data3, "syntheticData/dataset3.csv", row.names=FALSE)
-write.csv(data4, "syntheticData/dataset4.csv", row.names=FALSE)
-write.csv(data5, "syntheticData/dataset5.csv", row.names=FALSE)
-write.csv(data6, "syntheticData/dataset6.csv", row.names=FALSE)
+write.csv(data1, "syntheticData/scenario1_miki.csv", row.names=FALSE)
+write.csv(data2, "syntheticData/scenario2_miki.csv", row.names=FALSE)
+write.csv(data3, "syntheticData/scenario3_miki.csv", row.names=FALSE)
+write.csv(data4, "syntheticData/scenario4_miki.csv", row.names=FALSE)
+write.csv(data5, "syntheticData/scenario5_miki.csv", row.names=FALSE)
+write.csv(data6, "syntheticData/scenario6_miki.csv", row.names=FALSE)
 
 # Save both beta coefficients used
 beta_data <- data.frame(
@@ -206,6 +206,38 @@ write.csv(beta_data, "syntheticData/beta_coefficients_miki.csv", row.names=FALSE
 
 
 
+# Funcion Alex Scenario 5 (correlated groups)
+generate_correlated_data_groups <- function(n, p, group_size = 3) {
+  X <- matrix(rnorm(n * p), ncol = p)
+  
+  # Adding correlation to the first group by a common noise
+  noise_first_group = rnorm(n) 
+  for (j in 1:group_size) {
+    X[, j] <- X[, j] + noise_first_group
+  }
+  
+  # Adding correlation to the first block by a group noise, if it is possible
+  if (2 * group_size <= p) {
+    noise_second_group = rnorm(n)
+    for (j in 1:group_size) {
+      X[, group_size + j] <- X[, group_size + j] + noise_second_group
+    }
+  }
+  
+  # Generate normal random coefficients for beta
+  beta <- rnorm(p)
+  
+  # The noise follows a normal distribution N(0,1)
+  y <- X %*% beta + rnorm(n)
+  
+  data <- data.frame(y=y, X)
+  
+  return(data)
+}
+
+data <- generate_correlated_data_groups(n, p)
+mcor <- cor(data)
+corrplot::corrplot(mcor, method = "number")
 
 
 
@@ -258,37 +290,6 @@ noise_params <- list(mean=0, sd=1) # Noise parameters
 data <- generate_data_group_correlation(n, p, beta_coef, correlation_groups, noise_params)
 mcor <- cor(data)
 corrplot::corrplot(mcor, method = "number")
-
-
-generate_data_blocks <- function(n, p, block_size = 3) {
-  X <- matrix(rnorm(n * p), ncol = p)
-  
-  noise_vector_first = rnorm(n)  # Common noise vector for the first block
-  for (j in 1:block_size) {
-    X[, j] <- X[, j] + noise_vector_first
-  }
-  
-  # Check if a second block is feasible before proceeding
-  if (2 * block_size <= p) {
-    noise_vector_second = rnorm(n)  # Common noise vector for the second block
-    for (j in 1:block_size) {
-      X[, block_size + j] <- X[, block_size + j] + noise_vector_second
-    }
-  }
-  
-  beta <- rnorm(p)
-  y <- X %*% beta + rnorm(n)
-  
-  data <- data.frame(y=y, X)
-  
-  #return(list(X=X,y=y))
-  return(data)
-}
-
-data <- generate_data_blocks(n, p)
-mcor <- cor(data)
-corrplot::corrplot(mcor, method = "number")
-
 
 
 # To do list:
