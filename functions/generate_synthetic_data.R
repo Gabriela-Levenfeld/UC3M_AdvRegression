@@ -40,57 +40,30 @@ generate_data_indep <- function(n, p, beta_coef, X_matrix, X_params, noise_type,
 }
 
 
-generate_data_correlated <- function(n, p, beta_coef, rho, noise_params) {
-  # 1. Feature Matrix
-  Sigma <- matrix(rho, nrow=p, ncol=p)
-  diag(Sigma) <- 1 # Set the diagonal to 1 (correlation with itself)
+generate_correlated_data_groups <- function(n, p, group_size = 3) {
+  X <- matrix(rnorm(n*p), ncol=p)
   
-  # Generate correlated feature matrix
-  X_correlated <- mvrnorm(n, mu=rep(0, p), Sigma=Sigma)
-  X_0 <- matrix(rep(1, n), ncol=1) # Add intercept
-  X <- cbind(X_0, X_correlated)
-  
-  # 2. Creating Linear Relationship
-  y_lin <- X %*% beta_coef
-  
-  # 3. Introducing Random Error (Noise) -> Follows a Normal distribution
-  normal_error <- rnorm(n, mean=noise_params$mean, sd=noise_params$sd)
-  y <- y_lin + normal_error
-  
-  # 4. Final Outputs
-  data <- data.frame(y=y, X)
-  data <- subset(data, select=-c(X1)) # Get rid off the intercept, no need anymore
-  
-  return(data)
-}
-
-
-generate_data_byGroups <- function(n, p, beta_coef, num_groups, group_means, noise_params) {
-  obs_per_group <- n/num_groups
-  group_data <- vector("list", num_groups)
-  Sigma <- diag(p)
-  
-  # Generate data for each group
-  for (i in 1:num_groups) {
-    # 1. Feature Matrix: with group specific means
-    X_group <- mvrnorm(obs_per_group, mu=group_means[i, ], Sigma=Sigma)
-    X_0_group <- matrix(rep(1, obs_per_group), ncol=1) # Add the intercept
-    X <- cbind(X_0_group, X_group)
-    
-    # 2. Creating Linear Relationship
-    y_lin_group <- X %*% beta_coef
-    
-    # 3. Introducing Random Error (Noise) -> Follows a Normal distribution
-    normal_error_group <- rnorm(obs_per_group, mean=noise_params$mean, sd=noise_params$sd)
-    y_group <- y_lin_group + normal_error_group
-    
-    # Store the group data -> with the id group that the obs. belong
-    group_data[[i]] <- data.frame(group=factor(i), y=y_group, X=X)
+  # Adding correlation to the first group by a common noise
+  noise_first_group <- rnorm(n) 
+  for (j in 1:group_size) {
+    X[, j] <- X[, j] + noise_first_group
   }
   
-  # 4. Final Outputs
-  data <- do.call(rbind, group_data) # Combine in a df
-  data <- subset(data, select = -c(X.1)) # Get rid off the intercept, no need anymore
+  # Adding correlation to the first block by a group noise, if it is possible
+  if (2 * group_size <= p) {
+    noise_second_group=rnorm(n)
+    for (j in 1:group_size) {
+      X[, group_size + j] <- X[, group_size + j] + noise_second_group
+    }
+  }
+  
+  # Generate normal random coefficients for beta
+  beta <- rnorm(p)
+  
+  # The noise follows a normal distribution N(0,1)
+  y <- X %*% beta + rnorm(n)
+  
+  data <- data.frame(y=y, X, beta_coef=beta)
   
   return(data)
 }
