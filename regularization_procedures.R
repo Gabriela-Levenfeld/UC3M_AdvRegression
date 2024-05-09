@@ -10,6 +10,7 @@
 library(dplyr)
 library(ggplot2)
 library(pander)
+library(tidyr)
 
 source("functions/split_data.R")
 source("functions/apply_penalty_model.R")
@@ -71,8 +72,7 @@ for (i in 1:n_scenarios) {
 
 
 # Analysed results -------------------------------------------------------------
-
-## Study MSE measure ---------------------------------------------------------
+## Study MSE  ------------------------------------------------------------------
 all_summary_stats <- list()
 
 for (i in 1:n_scenarios) {
@@ -90,7 +90,7 @@ for (i in 1:n_scenarios) {
     theme_minimal()
   
   p
-  ggsave(paste0("results/boxplotsMSE/MSEP_boxplot_scenario", i, ".png"), plot=p) # Save the plot
+  #ggsave(paste0("results/mse_boxplots/MSEP_boxplot_scenario", i, ".png"), plot=p) # Save the plot
   
   # Print statistics for Latex
   summary_stats <- data_scenario %>%
@@ -107,15 +107,48 @@ for (i in 1:n_scenarios) {
   pander(summary_stats)
 }
 
-save(all_summary_stats, file="all_summary_stats.RData")
+# Print results for just one scenario of the six we have
+scenario_to_see <- 1
+all_summary_stats[[scenario_to_see]]
 
+## Study coefficients ----------------------------------------------------------
+results_list <- list()
 
-# Con los cvs sacar las métricas para el report:
-# Error medio y media de las betas
+for (i in 1:n_scenarios) {
+  cat("Analysis of scenario ", i, "\n")
+  
+  # Load Scenario
+  data_scenario <- read.csv(paste0("results/scenario", i, ".csv"), sep=",")
+  
+  # Prepare data for analysis, melt it down for easier coefficient analysis
+  coefficients_data <- data_scenario %>%
+    select(starts_with("X"), iteration, Method) %>%
+    pivot_longer(cols = -c(iteration, Method), names_to = "Coefficient", values_to = "Value") %>%
+    group_by(Method, Coefficient) %>%
+    summarise(
+      Zero_Count = sum(Value == 0, na.rm = TRUE),
+      Near_Zero_Count = sum(abs(Value) < 0.005 & Value != 0, na.rm = TRUE),
+      Average_Value = mean(Value, na.rm = TRUE),
+      SD_Value = sd(Value, na.rm = TRUE),
+      .groups = 'drop'
+    )
+  
+  # Extract best lambda and alpha
+  lambda_alpha_stats <- data_scenario %>%
+    group_by(Method) %>%
+    summarise(
+      Average_Lambda = mean(best_lambda),
+      Average_Alpha = mean(best_alpha),
+      .groups = 'drop'
+    )
+  
+  # Save results
+  results_list[[i]] <- list(Coefficients = coefficients_data, LambdaAlphaStats = lambda_alpha_stats)
+  write.csv(results_list[[i]]$Coefficients, paste0("results/coef_summary/coef_summary_scenario", i, ".csv"))
+  
+  print(lambda_alpha_stats)
+}
 
-
-
-## Benchmark -------------------------------------------------------------------
-ols1 <- lm(y~., data = aux$train) # OLS
-olsBIC_mod1 <- stepAIC(ols1, k=log(nrow(aux$x_train)), trace=0) # OLS combined with the BIC
-## -----------------------------------------------------------------------------
+# Print results for just one scenario of the six we have
+scenario_to_see <- 1
+print(results_list[[scenario_to_see]]$Coefficients, n=33) # In scenario 6, n=120
