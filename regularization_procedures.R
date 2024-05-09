@@ -11,11 +11,12 @@ library(dplyr)
 library(ggplot2)
 library(pander)
 library(tidyr)
+library(forcats) #For plot coef of scenario 6
 
 source("functions/split_data.R")
 source("functions/apply_penalty_model.R")
 
-# ------------------------------------------------------------------------------
+# Compute methods --------------------------------------------------------------
 set.seed(1234) # for reproducibility
 
 # Global variables
@@ -74,7 +75,6 @@ for (i in 1:n_scenarios) {
 # Analysed results -------------------------------------------------------------
 ## Study MSE  ------------------------------------------------------------------
 all_summary_stats <- list()
-
 for (i in 1:n_scenarios) {
   cat("Analysis of scenario ", i, "\n")
   
@@ -113,7 +113,6 @@ all_summary_stats[[scenario_to_see]]
 
 ## Study coefficients ----------------------------------------------------------
 results_list <- list()
-
 for (i in 1:n_scenarios) {
   cat("Analysis of scenario ", i, "\n")
   
@@ -127,9 +126,9 @@ for (i in 1:n_scenarios) {
     group_by(Method, Coefficient) %>%
     summarise(
       Zero_Count = sum(Value == 0, na.rm = TRUE),
-      Near_Zero_Count = sum(abs(Value) < 0.005 & Value != 0, na.rm = TRUE),
-      Average_Value = mean(Value, na.rm = TRUE),
-      SD_Value = sd(Value, na.rm = TRUE),
+      Near_Zero_Count = sum(abs(Value) < 0.005 & Value != 0, na.rm=TRUE),
+      Average_Value = mean(Value, na.rm=TRUE),
+      SD_Value = sd(Value, na.rm=TRUE),
       .groups = 'drop'
     )
   
@@ -152,3 +151,15 @@ for (i in 1:n_scenarios) {
 # Print results for just one scenario of the six we have
 scenario_to_see <- 1
 print(results_list[[scenario_to_see]]$Coefficients, n=33) # In scenario 6, n=120
+
+
+# Scenario 6 is quite special
+coef_data6 <- results_list[[6]]$Coefficients %>%
+  mutate(Coefficient = fct_reorder(Coefficient, as.numeric(sub("X", "", Coefficient))))
+
+ggplot(coef_data6, aes(x=Coefficient, y=Zero_Count, fill=Method)) +
+  geom_bar(stat="identity", position=position_dodge(width = 0.7)) +
+  labs(x="Coefficient", y="Number of times coefficient is zero") +
+  scale_fill_brewer(palette="Dark2") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle=45, hjust=1))
