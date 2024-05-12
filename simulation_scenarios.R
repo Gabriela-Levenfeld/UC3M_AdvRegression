@@ -127,9 +127,9 @@ corrplot::corrplot(mcor4, method = "number")
 # Betas coefficients: follows a normal distribution
 
 set.seed(12345)
-data5 <- generate_correlated_data_groups(n, p)
-beta_coef_normal <- data5$beta_coef
-data5 <- subset(data5, select=-c(beta_coef))
+aux_data <- generate_correlated_data_groups(n, p)
+beta_coef_normal <- aux_data$beta_coef
+data5 <- aux_data$data
 
 ## Check data ------------------------------------------------------------------
 mcor5 <- cor(data5)

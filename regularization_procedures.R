@@ -8,10 +8,7 @@
 
 # Load libraries and functions -------------------------------------------------
 library(dplyr)
-library(ggplot2)
-library(pander)
 library(tidyr)
-library(forcats) #For plot coef of scenario 6
 
 source("functions/split_data.R")
 source("functions/apply_penalty_model.R")
@@ -68,98 +65,5 @@ for (i in 1:n_scenarios) {
   )
   
   # Save df as csv for later analysis
-  write.csv(combined_data, file=paste("results/scenario", i, ".csv", sep=""), row.names=FALSE)
+  write.csv(combined_data, file=paste("results/general_info/scenario", i, ".csv", sep=""), row.names=FALSE)
 }
-
-
-# Analysed results -------------------------------------------------------------
-## Study MSE  ------------------------------------------------------------------
-all_summary_stats <- list()
-for (i in 1:n_scenarios) {
-  cat("Analysis of scenario ", i, "\n")
-  
-  # Load Scenario
-  data_scenario <- read.csv(paste0("results/scenario", i, ".csv"), sep=",")
-  
-  # Create boxplot for MSEP
-  p <- ggplot(data_scenario, aes(x=Method, y=MSEP, fill=Method)) +
-    geom_boxplot() +
-    labs(title=paste("Boxplot of MSEP - Scenario", i),
-         x="Regularization Method", y="Mean Squared Error of Prediction") +
-    scale_fill_brewer(palette="Dark2") +
-    theme_minimal()
-  
-  p
-  #ggsave(paste0("results/mse_boxplots/MSEP_boxplot_scenario", i, ".png"), plot=p) # Save the plot
-  
-  # Print statistics for Latex
-  summary_stats <- data_scenario %>%
-    group_by(Method) %>%
-    summarise(
-      Average_Error=mean(MSEP),
-      Max_Error=max(MSEP),
-      Min_Error=min(MSEP),
-      Std_Deviation=sd(MSEP)
-    )
-  
-  # Store them
-  all_summary_stats[[i]] <- summary_stats
-  pander(summary_stats)
-}
-
-# Print results for just one scenario of the six we have
-scenario_to_see <- 1
-all_summary_stats[[scenario_to_see]]
-
-## Study coefficients ----------------------------------------------------------
-results_list <- list()
-for (i in 1:n_scenarios) {
-  cat("Analysis of scenario ", i, "\n")
-  
-  # Load Scenario
-  data_scenario <- read.csv(paste0("results/scenario", i, ".csv"), sep=",")
-  
-  # Prepare data for analysis, melt it down for easier coefficient analysis
-  coefficients_data <- data_scenario %>%
-    select(starts_with("X"), iteration, Method) %>%
-    pivot_longer(cols = -c(iteration, Method), names_to = "Coefficient", values_to = "Value") %>%
-    group_by(Method, Coefficient) %>%
-    summarise(
-      Zero_Count = sum(Value == 0, na.rm = TRUE),
-      Near_Zero_Count = sum(abs(Value) < 0.005 & Value != 0, na.rm=TRUE),
-      Average_Value = mean(Value, na.rm=TRUE),
-      SD_Value = sd(Value, na.rm=TRUE),
-      .groups = 'drop'
-    )
-  
-  # Extract best lambda and alpha
-  lambda_alpha_stats <- data_scenario %>%
-    group_by(Method) %>%
-    summarise(
-      Average_Lambda = mean(best_lambda),
-      Average_Alpha = mean(best_alpha),
-      .groups = 'drop'
-    )
-  
-  # Save results
-  results_list[[i]] <- list(Coefficients = coefficients_data, LambdaAlphaStats = lambda_alpha_stats)
-  write.csv(results_list[[i]]$Coefficients, paste0("results/coef_summary/coef_summary_scenario", i, ".csv"))
-  
-  print(lambda_alpha_stats)
-}
-
-# Print results for just one scenario of the six we have
-scenario_to_see <- 1
-print(results_list[[scenario_to_see]]$Coefficients, n=33) # In scenario 6, n=120
-
-
-# Scenario 6 is quite special
-coef_data6 <- results_list[[6]]$Coefficients %>%
-  mutate(Coefficient = fct_reorder(Coefficient, as.numeric(sub("X", "", Coefficient))))
-
-ggplot(coef_data6, aes(x=Coefficient, y=Zero_Count, fill=Method)) +
-  geom_bar(stat="identity", position=position_dodge(width = 0.7)) +
-  labs(x="Coefficient", y="Number of times coefficient is zero") +
-  scale_fill_brewer(palette="Dark2") +
-  theme_minimal() +
-  theme(axis.text.x = element_text(angle=45, hjust=1))

@@ -63,7 +63,8 @@ generate_correlated_data_groups <- function(n, p, group_size = 3) {
   # The noise follows a normal distribution N(0,1)
   y <- X %*% beta + rnorm(n)
   
-  data <- data.frame(y=y, X, beta_coef=beta)
+  data <- data.frame(y=y, X)
   
-  return(data)
+  output <- list(data=data, beta_coef=beta)
+  return(output)
 }
